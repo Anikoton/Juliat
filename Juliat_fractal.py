@@ -1,6 +1,12 @@
 from PIL import Image
+import os
 
-def parameters(file_path: str = r'C:\Users\Nikolayev_AA_\PycharmProjects\Juliat\venv\f_parameters.txt'):
+if(os.cpu_count() is not None):
+    CPU_COUNT = os.cpu_count()
+else:
+    CPU_COUNT = 1
+
+def parameters(file_path: str = r'C:\Users\Nikolayev_AA_\PycharmProjects\Juliat\f_parameters.txt'):
 
     params = []
 
@@ -10,6 +16,38 @@ def parameters(file_path: str = r'C:\Users\Nikolayev_AA_\PycharmProjects\Juliat\
 
     # Формат возврата: [(cX, cY),(cX, cY),(cX, cY)]
     return list(tuple(float(it) for it in par.rstrip('\n').split(', ')) for par in params)
+
+def fractal_builder(cX:float, cY:float):
+
+    # w, h, zoom
+    w, h, zoom = 1920, 1080, 1
+
+    bitmap = Image.new('RGB', (w, h), 'white')
+    pix = bitmap.load()
+
+    moveX, moveY = 0.0, 0.0
+    maxIter = 255
+
+    for x in range(w):
+
+        for y in range(h):
+            zx = 1.5 * (x - w / 2) / (0.5 * zoom * w) + moveX
+            zy = 1.0 * (y - h / 2) / (0.5 * zoom * h) + moveY
+            i = maxIter
+
+            while zx * zx + zy * zy < 4 and i > 1:
+                tmp = zx * zx - zy * zy + cX
+                zy, zx = 2.0 * zx * zy + cY, tmp
+                i -= 1
+
+            # RGB
+            pix[x, y] = (i << 21) + (i << 10) + i * 8
+
+    # bitmap.show()
+    file_name = str(cX) + '_' + str(cY)
+    bitmap.save(f'C:\\Users\\Nikolayev_AA_\\PycharmProjects\\Juliat\\venv\\fractals_juliat\\{file_name}.bmp')
+    print(f'{file_name} построен.')
+
 
 if __name__ == '__main__':
 
@@ -46,7 +84,7 @@ if __name__ == '__main__':
                     zy, zx = 2.0 * zx * zy + cY, tmp
                     i -= 1
 
-                # convert byte to RGB (3 bytes)
+                #RGB
                 pix[x, y] = (i << 21) + (i << 10) + i * 8
 
         #bitmap.show()
