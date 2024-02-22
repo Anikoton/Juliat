@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from PIL import Image
 import os
 import multiprocessing
+from multiprocessing import Process, Lock
 import threading
 import shutil
 
@@ -22,7 +24,7 @@ def parameters(file_path: str = r'C:\Users\Computer_G\PycharmProjects\Juliat\f_p
     # Формат возврата: [(cX, cY),(cX, cY),(cX, cY)]
     return list(tuple(float(it) for it in par.rstrip('\n').split(', ')) for par in params)
 
-def fractal_builder(start_points):
+def fractal_builder(start_points, l):
 
     for point in start_points:
 
@@ -55,10 +57,17 @@ def fractal_builder(start_points):
         # bitmap.show()
         file_name = str(cX) + '_' + str(cY)
         bitmap.save(fr'C:\Users\Computer_G\PycharmProjects\Juliat\fractals_juliat\{file_name}.bmp')
-        print(f'{file_name} построен.')
 
+        l.acquire()
+
+        try:
+            print(f'{file_name} построен.')
+        finally:
+            l.release()
 
 if __name__ == '__main__':
+
+    lock = Lock()
 
     params = parameters()
 
@@ -74,7 +83,7 @@ if __name__ == '__main__':
         proc_ = []
 
         for i in range(len(params)):
-            proc_.append(multiprocessing.Process(target=fractal_builder, args=(job,)))
+            proc_.append(multiprocessing.Process(target=fractal_builder, args=(job, lock, )))
 
         [p.start() for p in proc_]
         [p.join() for p in proc_]
